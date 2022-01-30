@@ -43,8 +43,8 @@ public class DirectionCheckController : MonoBehaviour
     var (bottom, top, left, right) = (new Vector2(), new Vector2(), new Vector2(), new Vector2());
 
     bottom.x = top.x = collider.bounds.center.x - transform.position.x;
-    bottom.y = transform.position.y - collider.bounds.max.y;
-    top.y = transform.position.y - collider.bounds.min.y;
+    bottom.y = transform.position.y + collider.bounds.max.y;
+    top.y = collider.bounds.min.y;
 
     left.x = transform.position.x - collider.bounds.min.x;
     left.y = right.y = transform.position.y - collider.bounds.center.y;
@@ -58,6 +58,7 @@ public class DirectionCheckController : MonoBehaviour
 
   private void RecalculateCheckerSizes(Collider2D collider)
   {
+    // print(collider.bounds);
     var (bottomS, topS, leftS, rightS) = (new Vector2(), new Vector2(), new Vector2(), new Vector2());
 
     bottomS.x = topS.x = collider.bounds.size.x - checkerSkin;

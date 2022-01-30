@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+[RequireComponent(typeof(Camera))]
 public class FollowCameraManager : MonoBehaviour
 {
   [SerializeField]
@@ -23,8 +23,16 @@ public class FollowCameraManager : MonoBehaviour
 
   float currentChangeSpeedX, currentChangeSpeedY;
 
+  public CameraControlArea controlArea;
+
+  Camera camera;
+
+  Rect cameraBounds;
+
   private void Start()
   {
+    camera = GetComponent<Camera>();
+
     originalPosition = transform.position;
   }
 
@@ -35,6 +43,8 @@ public class FollowCameraManager : MonoBehaviour
       vertical ? target.transform.position.y : originalPosition.y,
       originalPosition.z
     );
+
+    destination = controlArea.LimitCamera(camera, destination);
 
     if (Vector2.Distance(transform.position, destination) > snapThreshold)
     {
@@ -50,5 +60,16 @@ public class FollowCameraManager : MonoBehaviour
     {
       transform.position = destination;
     }
+  }
+
+  public void SetControlArea(CameraControlArea controlArea)
+  {
+    this.controlArea = controlArea;
+
+    horizontal = controlArea.followHorizontal;
+    vertical = controlArea.followVertical;
+
+    originalPosition.x = controlArea.Collider.bounds.center.x;
+    originalPosition.y = controlArea.Collider.bounds.center.y;
   }
 }

@@ -2,6 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
+
+// https://blog.andrewnapierkowski.com/jumping-to-conclusions-mega-man-x/
 
 [RequireComponent(typeof(DirectionCheckController))]
 [RequireComponent(typeof(Rigidbody2D))]
@@ -12,18 +15,33 @@ public class JumpController : MonoBehaviour, IVelocityProvider
   [SerializeField]
   LayerMask groundLayer;
 
+
+  [Header("Jump values")]
   [SerializeField]
   float jumpForce = 800;
 
   [SerializeField]
   JumpMethod jumpMethod = JumpMethod.Impulse;
 
+
+  [Header("Variable jump height")]
+  [SerializeField]
+  bool variableJumpHeight = true;
+
+  [SerializeField]
+  float jumpVelocityMultiplier = 0.3f;
+
+
+  [Header("Air jumps")]
   [SerializeField]
   int maxAirJumps = 0;
   int airJumps = 0;
 
+
   bool isGrounded;
+
   bool jump;
+  bool cancelJump;
 
   Rigidbody2D rigidBody;
   DirectionCheckController directionCheck;
@@ -37,13 +55,16 @@ public class JumpController : MonoBehaviour, IVelocityProvider
 
     Collider2D collider = GetComponent<Collider2D>();
 
+    jumpActions = new Dictionary<JumpMethod, Action>()
+    {
+      {JumpMethod.Force, ForceJump},
+      {JumpMethod.Impulse, ImpulseJump},
+      {JumpMethod.Velocity, VelocityJump}
+    };
+
+    jump = cancelJump = false;
+
     directionCheck.RecalculateCheckers(collider);
-
-    jumpActions = new Dictionary<JumpMethod, Action>();
-    jumpActions.Add(JumpMethod.Force, ForceJump);
-    jumpActions.Add(JumpMethod.Impulse, ImpulseJump);
-    jumpActions.Add(JumpMethod.Velocity, VelocityJump);
-
   }
 
   private void Update()
@@ -53,6 +74,7 @@ public class JumpController : MonoBehaviour, IVelocityProvider
     {
       airJumps = 0;
     }
+    // print(rigidBody.velocity.y);
   }
 
   private void FixedUpdate()
@@ -60,8 +82,14 @@ public class JumpController : MonoBehaviour, IVelocityProvider
     if (jump)
     {
       jump = false;
-      NullifyVelocityY();
+      SetVelocityY(0);
       jumpActions[jumpMethod]();
+    }
+
+    if (cancelJump && variableJumpHeight)
+    {
+      cancelJump = false;
+      SetVelocityY(rigidBody.velocity.y * jumpVelocityMultiplier);
     }
   }
 
@@ -80,23 +108,36 @@ public class JumpController : MonoBehaviour, IVelocityProvider
     rigidBody.velocity += Vector2.up * jumpForce * Time.fixedDeltaTime;
   }
 
-  void NullifyVelocityY()
+  void SetVelocityY(float yVelocity)
   {
     Vector2 v = rigidBody.velocity;
-    v.y = 0;
+    v.y = yVelocity;
     rigidBody.velocity = v;
   }
 
-  void OnJump()
+  void OnJump(InputValue value)
   {
-    if (isGrounded)
+    bool jumpButtonDown = value.Get<float>() != 0;
+    // print(jumpButtonDown);
+
+    if (jumpButtonDown)
     {
-      jump = true;
+      if (isGrounded)
+      {
+        jump = true;
+      }
+      else if (!isGrounded && airJumps < maxAirJumps)
+      {
+        jump = true;
+        airJumps++;
+      }
     }
-    else if (!isGrounded && airJumps < maxAirJumps)
+    else
     {
-      jump = true;
-      airJumps++;
+      if (jump || rigidBody.velocity.y > 0)
+      {
+        cancelJump = true;
+      }
     }
   }
 

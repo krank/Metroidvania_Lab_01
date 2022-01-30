@@ -1,0 +1,40 @@
+x Walking
+x Jumping
+x Double jumping
+x Lookahead
+x Camera follow
+x Cancel jumps
+- Extra jumps delay
+
+- Limit camera scrolling by area
+
+- Jump Input buffering
+- Coyote time
+
+- Wall friction
+! Wall jumping
+- Wall hanging
+
+- Dashing
+
+! Moving platforms
+
+! Addon system
+
+! Bullet-type weapon
+- Beam-type weapon
+- Hitscan-type weapon
+! Analog aiming
+
+- Bombs (timer)
+- Mines (proximity)
+
+! Doors
+! Locks & keys
+
+- Inventory
+
+! Map
+! Minimap
+
+- Parallax backgrounds
